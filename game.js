@@ -1,3 +1,4 @@
+const prompt = require("prompt-sync")();
 // Create a Gameboard
 
 function createGameboard(rows, cols){
@@ -15,7 +16,7 @@ function createGameboard(rows, cols){
 
 // Create players
 function createPlayer(name, marker){
-    let error = "No error";
+    let error = null;
     if (typeof(name) !== "string"){
         return{name, marker, error : "Kindly enter alphanumberic characters only in the name"};
     }
@@ -28,13 +29,10 @@ function createPlayer(name, marker){
 // Define a way to play a move for players
 function playMove(player, ongoingGame, posX, posY){
     const marker = player.marker;
-    let error = "No Error";
-
-
+    let error = null;
     if(posX > ongoingGame.getCols() || posY > ongoingGame.getRows()){
         return {ongoingGame, error: "Move outside play area"};
     }
-    
     // let gameboard = ongoingGame.gameboard;
     // Check for a marker present on the gameboard
     if(ongoingGame.gameboard[posX][posY] != '#'){
@@ -45,18 +43,89 @@ function playMove(player, ongoingGame, posX, posY){
     return {ongoingGame, error};
 }
 
-let gameBoard = createGameboard(3, 3);
-const player1 = createPlayer("Avi", 'X')
-const player2 = createPlayer("Saumya", 'O')
+function checkForWin(ongoingGame, player){
+    const marker = player.marker;
+    
+    // checking for horizontal win
+    for (let i =0; i<ongoingGame.getRows(); i++){
+        let chkr;
+        for (j=0; j<ongoingGame.getCols(); j++){
+            chkr = chkr + ongoingGame.gameboard[i][j]
+        }
+        if (chkr === marker*ongoingGame.getCols()){
+            return true
+        }
+    }
+    
+    // checking for vertical win
+    for (let i =0; i<ongoingGame.getCols(); i++){
+        let chkr;
+        for (j=0; j<ongoingGame.getRows(); j++){
+            chkr = chkr + ongoingGame.gameboard[j][i]
+        }
+        if (chkr === marker*ongoingGame.getRows()){
+            return true
+        }
+    }
 
-// let game_state;
-// game_state = playMove(player1, gameBoard, 0, 0);
-// console.log(game_state.ongoingGame.gameboard)
-// game_state = playMove(player2, gameBoard, 1, 2);
-// console.log(game_state.ongoingGame.gameboard)
-// game_state = playMove(player1, gameBoard, 2, 2);
-// console.log(game_state.ongoingGame.gameboard)
+    // checking for diagonal win
+    for (let i=0; i<ongoingGame.getRows(); i++){
+        let chkr1, chkr2;
+        const rows = ongoingGame.getRows();
+        chkr1 += ongoingGame.gameboard[i][i]
+        chkr2 += ongoingGame.gameboard[rows-1-i][rows-1-i]
+        if (chkr1 === marker*ongoingGame.getCols() || chkr1 === marker*ongoingGame.getCols()){
+            return true
+        }
+    }
+    return false
+}
 
-// After 2 moves, check for winnings and display the winner
+// Check for draw by flattening out the entire board and check if any cell is without a mark
+function checkForDraw(ongoingGame){
+    return ongoingGame.gameboard.flat().every(cell => cell !== '#')
+}
 
-// Handle edge cases in player creation etc
+function playTicTacToe(){
+    console.log('Ready to play Tic-Tac-Toe ?')
+    const user_input_dims = prompt("Enter the dimensions of the board (eg. 3x3): ")
+    const rows = user_input_dims.split('x')[0]
+    const cols = user_input_dims.split('x')[1]
+    let game = createGameboard(rows, cols);
+
+    const user_input_player1 = prompt("Enter the name of player playing with X : ")
+    const user_input_player2 = prompt("Enter the name of player playing with O : ")
+    const player1 = createPlayer(user_input_player1, 'X')
+    const player2 = createPlayer(user_input_player2, 'O')
+
+    let currentPlayer = player1
+
+    while(true){
+        console.log(`${currentPlayer.name}'s turn: `);
+        const mark_loc = prompt(`Enter mark loc (eg 1,2): `)
+        const row = mark_loc.split(',')[0]
+        const col = mark_loc.split(',')[1]
+
+        const result = playMove(currentPlayer, game, row, col)
+
+        if(result.error){
+            console.log(`Error: ${result.error}`)
+            continue;
+        }
+
+        if(checkForWin(game, currentPlayer)){
+            console.log(`${currentPlayer.name} wins!!!`)
+            break
+        }
+        else if (checkForDraw(game)){
+            console.log("Match is a draw")
+            break
+        }
+        console.log("Current board:");
+        console.log(game.gameboard.flat())
+        currentPlayer = currentPlayer === player1 ? player2:player1
+    }
+}
+
+playTicTacToe();
+
