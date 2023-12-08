@@ -6,7 +6,7 @@ function createGameboard(rows, cols){
     for(let row = 0; row<rows; row++){
         gameboard[row] = [];
         for(let col = 0; col<cols; col++){
-            gameboard[row].push('#');
+            gameboard[row].push('');
         }
     }
     const getRows = () => rows;
@@ -30,12 +30,12 @@ function createPlayer(name, marker){
 function playMove(player, ongoingGame, posX, posY){
     const marker = player.marker;
     let error = null;
-    if(posX > ongoingGame.getCols() || posY > ongoingGame.getRows()){
+    if(posX > ongoingGame.getCols()-1 || posY > ongoingGame.getRows()-1){
         return {ongoingGame, error: "Move outside play area"};
     }
     // let gameboard = ongoingGame.gameboard;
     // Check for a marker present on the gameboard
-    if(ongoingGame.gameboard[posX][posY] != '#'){
+    if(ongoingGame.gameboard[posX][posY] != ''){
         return {ongoingGame, error: "Move exists"};
     }
     ongoingGame.gameboard[posX][posY] = marker;
@@ -52,7 +52,7 @@ function checkForWin(ongoingGame, player){
         for (j=0; j<ongoingGame.getCols(); j++){
             chkr = chkr + ongoingGame.gameboard[i][j]
         }
-        if (chkr === marker*ongoingGame.getCols()){
+        if (chkr === marker.repeat(ongoingGame.getCols())){
             return true
         }
     }
@@ -63,7 +63,7 @@ function checkForWin(ongoingGame, player){
         for (j=0; j<ongoingGame.getRows(); j++){
             chkr = chkr + ongoingGame.gameboard[j][i]
         }
-        if (chkr === marker*ongoingGame.getRows()){
+        if (chkr === marker.repeat(ongoingGame.getRows())){
             return true
         }
     }
@@ -74,7 +74,7 @@ function checkForWin(ongoingGame, player){
         const rows = ongoingGame.getRows();
         chkr1 += ongoingGame.gameboard[i][i]
         chkr2 += ongoingGame.gameboard[rows-1-i][rows-1-i]
-        if (chkr1 === marker*ongoingGame.getCols() || chkr1 === marker*ongoingGame.getCols()){
+        if (chkr1 === marker.repeat(ongoingGame.getCols()) || chkr2 === marker.repeat(ongoingGame.getCols())){
             return true
         }
     }
@@ -83,7 +83,7 @@ function checkForWin(ongoingGame, player){
 
 // Check for draw by flattening out the entire board and check if any cell is without a mark
 function checkForDraw(ongoingGame){
-    return ongoingGame.gameboard.flat().every(cell => cell !== '#')
+    return ongoingGame.gameboard.flat().every(cell => cell !== '')
 }
 
 function playTicTacToe(){
@@ -107,25 +107,27 @@ function playTicTacToe(){
         const col = mark_loc.split(',')[1]
 
         const result = playMove(currentPlayer, game, row, col)
-
         if(result.error){
             console.log(`Error: ${result.error}`)
             continue;
         }
-
-        if(checkForWin(game, currentPlayer)){
-            console.log(`${currentPlayer.name} wins!!!`)
-            break
-        }
-        else if (checkForDraw(game)){
+        let w = checkForWin(game, currentPlayer);
+        console.log(w);
+        let d = checkForDraw(game);
+        console.log(d);
+        // if(checkForWin(game, currentPlayer)){
+        //     console.log(checkForWin(game, currentPlayer))
+        //     console.log(`${currentPlayer.name} wins!!!`)
+        //     break
+        // }
+        if (checkForDraw(game)){
             console.log("Match is a draw")
             break
         }
         console.log("Current board:");
-        console.log(game.gameboard.flat())
+        console.log(game.gameboard)
         currentPlayer = currentPlayer === player1 ? player2:player1
     }
 }
 
 playTicTacToe();
-
